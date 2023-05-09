@@ -11,7 +11,7 @@ const options = [
 function App() {
   return (
     <>
-      <Select options={options} />
+      <Select options={options} onChange={() => null} />
     </>
   );
 }
