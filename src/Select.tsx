@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./select.module.css";
 
 type SelectOption = {
   label: string;
-  value: any;
+  value: string | number;
 };
 
 type SelectProps = {
@@ -14,6 +14,25 @@ type SelectProps = {
 
 export function Select({ options, value, onChange }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+
+  function clearOptions() {
+    onChange(undefined);
+  }
+
+  function selectOption(option: SelectOption) {
+    /* if the same selection is selected agin, don't need to do computing */
+    if (option !== value) onChange(option);
+  }
+
+  function isOptionSelected(option: SelectOption) {
+    return option === value;
+  }
+
+  /* fixes a issue when onBlur, the highlighted row stays and doesn't reset to 0 index */
+  useEffect(() => {
+    if (isOpen) setHighlightedIndex(0);
+  }, [isOpen]);
 
   return (
     <div
@@ -23,12 +42,32 @@ export function Select({ options, value, onChange }: SelectProps) {
       className={styles.container}
     >
       <span className={styles.value}>{value?.label}</span>
-      <button className={styles["clear-btn"]}>&times;</button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          clearOptions();
+          setIsOpen(false);
+        }}
+        className={styles["clear-btn"]}
+      >
+        &times;
+      </button>
       <div className={styles.divider}></div>
       <div className={styles.caret}></div>
       <ul className={`${styles.options} ${isOpen ? styles.show : ""}`}>
-        {options.map((option) => (
-          <li key={option.value} className={styles.option}>
+        {options.map((option, index) => (
+          <li
+            onClick={(e) => {
+              e.stopPropagation();
+              selectOption(option);
+              setIsOpen(false);
+            }}
+            onMouseEnter={() => setHighlightedIndex(index)}
+            key={option.value}
+            className={`${styles.option} 
+            ${isOptionSelected(option) ? styles.selected : ""} 
+            ${index === highlightedIndex ? styles.highlighted : ""}`}
+          >
             {option.label}
           </li>
         ))}
